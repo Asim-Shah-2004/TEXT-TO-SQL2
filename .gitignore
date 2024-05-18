@@ -85,8 +85,9 @@ myenv/
 *.pyc
 __pycache__/
 local_settings.py
-
+myenv/
 textToSql/__pycache__
 
 .env
 db.sqlite3
+tp.txt
