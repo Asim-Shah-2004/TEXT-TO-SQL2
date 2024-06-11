@@ -91,3 +91,5 @@ textToSql/__pycache__
 .env
 db.sqlite3
 tp.txt
+
+Databases/

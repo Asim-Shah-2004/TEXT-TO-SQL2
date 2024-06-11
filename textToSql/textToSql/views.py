@@ -23,7 +23,7 @@ def addDataSource(request):
         password = request.POST.get('password')
         db_name = request.POST.get('db_name')
         db_host = request.POST.get('db_host')
-        
+        project_name = request.POST.get('project_name')
         try:
             connection = pymysql.connect(host=db_host,
                                          user=username,
@@ -42,8 +42,10 @@ def addDataSource(request):
             relationship_result = db.fetchall()
                 
             connection.close()
-            store_embeddings(schema_result, "schema_embeddings_MYSQL")
-            store_embeddings(relationship_result, "relationship_embeddings_MYSQL")
+            persist_directory = f'C:\\Users\\Asim\\OneDrive\\Desktop\\projects\\TEXT-TO-SQL\\Databases\\{project_name}'
+            chroma_client = chromadb.PersistentClient(path=persist_directory)
+            store_embeddings(schema_result, "schema_embeddings_MYSQL",chroma_client)
+            store_embeddings(relationship_result, "relationship_embeddings_MYSQL",chroma_client)
             
             return JsonResponse({'success': True})
             
@@ -72,9 +74,8 @@ WHERE
   `TABLE_SCHEMA` = SCHEMA()                
   AND `REFERENCED_TABLE_NAME` IS NOT NULL;"""
 
-def store_embeddings(data, collection_name):
+def store_embeddings(data, collection_name,chroma_client):
     texts = [" ".join([str(value) if value else "" for value in row.values()]) for row in data]
-    chroma_client = chromadb.Client()
     collection = chroma_client.create_collection(name=collection_name)
     documents = []
     ids = []
@@ -166,12 +167,13 @@ def queryDataSource(request):
 def querydatasourceOpenAi(request):
     if request.method == 'POST':
         query_text = request.POST.get('query')
-
+        project_name = request.POST.get('db_host')
         if not query_text:
             return JsonResponse({'error': 'Query text is required'}, status=400)
         
         try:
-            chroma_client = chromadb.Client()
+            persist_directory = f'C:\\Users\\Asim\\OneDrive\\Desktop\\projects\\TEXT-TO-SQL\\Databases\\{project_name}'
+            chroma_client = chromadb.PersistentClient(path=persist_directory)
             collection1 = chroma_client.get_collection(name="schema_embeddings_MYSQL")
             
             results1 = collection1.query(
@@ -229,13 +231,13 @@ def querydatasourceOpenAi(request):
 def querydatasourceGemini(request):
     if request.method == 'POST':
         query_text = request.POST.get('query')
-
-        
+        project_name = request.POST.get('project_name')
         if not query_text:
             return JsonResponse({'error': 'Query text is required'}, status=400)
         
         try:
-            chroma_client = chromadb.Client()
+            persist_directory = f'C:\\Users\\Asim\\OneDrive\\Desktop\\projects\\TEXT-TO-SQL\\Databases\\{project_name}'
+            chroma_client = chromadb.PersistentClient(path=persist_directory)
             collection1 = chroma_client.get_collection(name="schema_embeddings_MYSQL")
             
             results1 = collection1.query(
